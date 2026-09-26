@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expense Tracker Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <main class="dashboard">
+        <p class="eyebrow">PERSONAL FINANCE</p>
+        <h1>Expense Tracker</h1>
+        <p class="intro">Record a new income or expense entry below.</p>
+
+        <section aria-labelledby="summary-title">
+            <h2 id="summary-title">Monthly summary · {{ current_month }}</h2>
+            <div class="summary-grid">
+                <article class="summary-card">
+                    <p>Income</p>
+                    <strong class="income">{{ "%.2f"|format(monthly_income) }}</strong>
+                </article>
+                <article class="summary-card">
+                    <p>Expenses</p>
+                    <strong class="expense">{{ "%.2f"|format(monthly_expenses) }}</strong>
+                </article>
+                <article class="summary-card">
+                    <p>Remaining balance</p>
+                    <strong>{{ "%.2f"|format(balance) }}</strong>
+                </article>
+            </div>
+        </section>
+
+        <section class="chart-grid" aria-label="Dashboard charts">
+            <article class="chart-card">
+                <h2>Income and expenses</h2>
+                <p class="chart-subtitle">{{ current_month }}</p>
+                <canvas id="monthly-chart" data-income="{{ monthly_income }}" data-expenses="{{ monthly_expenses }}" role="img" aria-label="Bar chart comparing this month's income and expenses"></canvas>
+            </article>
+            <article class="chart-card">
+                <h2>Expenses by category</h2>
+                <p class="chart-subtitle">{{ current_month }}</p>
+                <canvas id="category-chart" role="img" aria-label="Bar chart showing this month's expenses by category"></canvas>
+                <ul class="chart-data" aria-label="Expense totals by category">
+                    {% for item in expense_by_category %}
+                        <li>{{ item.category }}: {{ "%.2f"|format(item.total) }}</li>
+                    {% else %}
+                        <li>No expense entries this month yet.</li>
+                    {% endfor %}
+                </ul>
+            </article>
+            <p class="stage-label chart-stage">Stage 7 · Simple dashboard charts</p>
+        </section>
+
+        <section class="welcome-card" aria-labelledby="form-title">
+            <h2 id="form-title">Add a transaction</h2>
+            {% if saved %}
+                <p class="message success" role="status">Transaction saved successfully.</p>
+            {% endif %}
+            {% if updated %}
+                <p class="message success" role="status">Transaction updated successfully.</p>
+            {% endif %}
+            {% if deleted %}
+                <p class="message success" role="status">Transaction deleted.</p>
+            {% endif %}
+            {% if error %}
+                <p class="message error" role="alert">{{ error }}</p>
+            {% endif %}
+
+            <form action="{{ url_for('add_transaction') }}" method="post">
+                <label for="type">Transaction type</label>
+                <select id="type" name="type" required>
+                    <option value="">Choose income or expense</option>
+                    <option value="income">Income</option>
+                    <option value="expense">Expense</option>
+                </select>
+
+                <label for="amount">Amount</label>
+                <input id="amount" name="amount" type="number" min="0.01" step="0.01" placeholder="e.g. 250.00" required>
+
+                <label for="category">Category</label>
+                <input id="category" name="category" type="text" maxlength="50" placeholder="e.g. Food, Salary" required>
+
+                <label for="transaction_date">Date</label>
+                <input id="transaction_date" name="transaction_date" type="date" required>
+
+                <label for="description">Description <span class="optional">(optional)</span></label>
+                <textarea id="description" name="description" rows="3" placeholder="Add a short note"></textarea>
+
+                <button type="submit">Save transaction</button>
+            </form>
+            <p class="stage-label">Stage 3 · Add income and expenses</p>
+        </section>
+
+        <section class="welcome-card history-card" aria-labelledby="history-title">
+            <h2 id="history-title">Transaction history</h2>
+            <form class="filter-form" action="{{ url_for('home') }}" method="get">
+                <div>
+                    <label for="filter-category">Category</label>
+                    <select id="filter-category" name="category">
+                        <option value="">All categories</option>
+                        {% for category in categories %}
+                            <option value="{{ category.category }}" {% if filter_category == category.category %}selected{% endif %}>{{ category.category }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label for="start-date">From date</label>
+                    <input id="start-date" name="start_date" type="date" value="{{ filter_start_date }}">
+                </div>
+                <div>
+                    <label for="end-date">To date</label>
+                    <input id="end-date" name="end_date" type="date" value="{{ filter_end_date }}">
+                </div>
+                <button type="submit">Filter history</button>
+                {% if filters_active %}
+                    <a class="clear-filters" href="{{ url_for('home') }}">Clear filters</a>
+                {% endif %}
+            </form>
+            {% if transactions %}
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Type</th>
+                                <th>Category</th>
+                                <th>Description</th>
+                                <th>Amount</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for transaction in transactions %}
+                                <tr>
+                                    <td>{{ transaction.transaction_date }}</td>
+                                    <td class="{{ transaction.type }}">{{ transaction.type|title }}</td>
+                                    <td>{{ transaction.category }}</td>
+                                    <td>{{ transaction.description or "—" }}</td>
+                                    <td>{{ "%.2f"|format(transaction.amount) }}</td>
+                                    <td class="actions">
+                                        <a href="{{ url_for('edit_transaction', transaction_id=transaction.id) }}">Edit</a>
+                                        <form action="{{ url_for('delete_transaction', transaction_id=transaction.id) }}" method="post">
+                                            <button class="delete-button" type="submit">Delete</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                {% if filters_active %}
+                    <p>No transactions match those filters.</p>
+                {% else %}
+                    <p>No transactions yet. Add one using the form above.</p>
+                {% endif %}
+            {% endif %}
+            <p class="stage-label">Stage 4 · View, edit, and delete transactions</p>
+        </section>
+    </main>
+    <script>
+        window.expenseByCategory = {{ expense_by_category|tojson }};
+    </script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

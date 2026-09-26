@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Transaction · Expense Tracker</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <main class="dashboard">
+        <p class="eyebrow">PERSONAL FINANCE</p>
+        <h1>Edit transaction</h1>
+        <section class="welcome-card" aria-labelledby="form-title">
+            <h2 id="form-title">Update details</h2>
+            {% if error %}
+                <p class="message error" role="alert">{{ error }}</p>
+            {% endif %}
+            <form action="{{ url_for('edit_transaction', transaction_id=transaction.id) }}" method="post">
+                <label for="type">Transaction type</label>
+                <select id="type" name="type" required>
+                    <option value="income" {% if transaction.type == 'income' %}selected{% endif %}>Income</option>
+                    <option value="expense" {% if transaction.type == 'expense' %}selected{% endif %}>Expense</option>
+                </select>
+
+                <label for="amount">Amount</label>
+                <input id="amount" name="amount" type="number" min="0.01" step="0.01" value="{{ transaction.amount }}" required>
+
+                <label for="category">Category</label>
+                <input id="category" name="category" type="text" maxlength="50" value="{{ transaction.category }}" required>
+
+                <label for="transaction_date">Date</label>
+                <input id="transaction_date" name="transaction_date" type="date" value="{{ transaction.transaction_date }}" required>
+
+                <label for="description">Description <span class="optional">(optional)</span></label>
+                <textarea id="description" name="description" rows="3">{{ transaction.description or '' }}</textarea>
+
+                <button type="submit">Save changes</button>
+            </form>
+            <p><a href="{{ url_for('home') }}">Back to dashboard</a></p>
+        </section>
+    </main>
+</body>
+</html>
