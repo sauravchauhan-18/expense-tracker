@@ -2,6 +2,20 @@
 
 A small personal finance web application built as a CSE college project. It lets a user record income and expenses, review transactions, and see a summary and charts for the current month.
 
+## Screenshots
+
+![Expense Tracker dashboard](screenshots/dashboard.png)
+
+*This screenshot uses fictional sample transactions.*
+
+### Dashboard summary and charts
+
+![Dashboard summary and charts with no transactions yet](screenshots/dashboard-summary.png)
+
+### Transaction form and history
+
+![Transaction form and empty transaction history](screenshots/transaction-form-history.png)
+
 ## Features
 
 - Add income and expense transactions with an amount, category, date, and optional description.
@@ -32,6 +46,10 @@ expense-tracker/
 ├── requirements.txt             # Python package requirements
 ├── README.md                    # Project documentation
 ├── .gitignore                   # Files Git should leave out
+├── screenshots/
+│   ├── dashboard.png            # Dashboard with fictional sample transactions
+│   ├── dashboard-summary.png    # Empty-state summary and charts
+│   └── transaction-form-history.png # Entry form and empty history
 ├── instance/
 │   ├── .gitkeep                 # Keeps this folder in Git
 │   └── expenses.db              # Created when the app first runs; ignored by Git
